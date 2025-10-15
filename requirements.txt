@@ -3,3 +3,4 @@ numpy
 opencv-python-headless
 mediapipe==0.10.11   # <-- KHÓA PHIÊN BẢN
 Pillow
+streamlit-webrtc
