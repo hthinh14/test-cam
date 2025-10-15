@@ -18,7 +18,6 @@ LABEL_MAP_PATH = r"D:/python/label_map.json" # Thêm đường dẫn cho label_m
 SMOOTH_WINDOW = 8
 FPS_SMOOTH = 0.9
 EPS = 1e-6
-
 # Hàm dự đoán từ Cây Quyết định tự viết
 def predict_one(x, tree):
     if not isinstance(tree, dict):
@@ -64,7 +63,7 @@ classes = list(id2label.values())
 # ==============================
 st.set_page_config(page_title="Demo Buồn Ngủ", layout="wide")
 st.title("😴 Nhận diện trạng thái tài xế bằng Decision Tree")
-st.success(f"✅ Mô hình sẵn sàng! Các nhãn: {classes}")
+st.success(f"Mô hình sẵn sàng! Các nhãn: {classes}")
 
 # ==============================
 # 3️⃣ FACE MESH VÀ HÀM TÍNH ĐẶC TRƯNG (Đã bổ sung các feature còn thiếu)
