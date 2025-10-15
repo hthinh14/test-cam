@@ -1,6 +1,5 @@
 streamlit
 numpy
 opencv-python-headless
-mediapipe
+mediapipe==0.10.11   # <-- KHÓA PHIÊN BẢN
 Pillow
-
