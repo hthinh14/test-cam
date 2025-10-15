@@ -176,13 +176,11 @@ class DrowsinessProcessor(VideoProcessorBase):
 # 1️⃣ GIAO DIỆN STREAMLIT CHÍNH
 # ==============================
 st.set_page_config(page_title="Demo Buồn Ngủ", layout="wide")
-st.title("😴 Nhận diện trạng thái tài xế bằng Decision Tree (Live)")
+st.title("😴 Nhận diện trạng thái mất tập trung bằng mô hình học máy.")
 st.success(f"Mô hình sẵn sàng! Các nhãn: {classes}")
-st.warning("⚠️ Vui lòng chấp nhận yêu cầu truy cập camera từ trình duyệt của bạn.")
+st.warning("Vui lòng chấp nhận yêu cầu truy cập camera từ trình duyệt của bạn.")
 st.markdown("---")
 
-# Thông báo yêu cầu cài đặt
-st.info("Để camera hoạt động trên Cloud, bạn cần đảm bảo file requirements.txt có **streamlit-webrtc**.")
 
 # Khởi tạo WebRTC Streamer
 webrtc_streamer(
