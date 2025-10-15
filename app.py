@@ -11,9 +11,9 @@ import os
 # ==============================
 # CẤU HÌNH & LOAD MODEL (Đã sửa lỗi load)
 # ==============================
-MODEL_PATH = r"D:/python/decision_tree_model.pkl"
-SCALER_PATH = r"D:/python/scaler.pkl"
-LABEL_MAP_PATH = r"D:/python/label_map.json" # Thêm đường dẫn cho label_map
+MODEL_PATH = "decision_tree_model.pkl"
+SCALER_PATH = "scaler.pkl"
+LABEL_MAP_PATH = "label_map.json"
 
 SMOOTH_WINDOW = 8
 FPS_SMOOTH = 0.9
