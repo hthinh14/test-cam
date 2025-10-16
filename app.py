@@ -135,9 +135,11 @@ class DrowsinessProcessor(VideoProcessorBase):
         self.mean = mean
         self.std = std
         self.id2label = id2label
-        self.face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=False)
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5
+        self.face_mesh = mp_face_mesh.FaceMesh(
+            max_num_faces=1, 
+            refine_landmarks=False,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5)
         self.frame_queue = deque(maxlen=WINDOW_SIZE)
         self.pred_queue = deque(maxlen=SMOOTH_WINDOW)
         self.last_pred_label = "CHO DU LIEU VAO" 
@@ -183,7 +185,7 @@ class DrowsinessProcessor(VideoProcessorBase):
                 self.pred_queue.append(pred_label)
 
                 # Xóa 15 khung hình cũ (overlap)
-                for _ in range(2):
+                for _ in range(5):
                     if self.frame_queue:
                         self.frame_queue.popleft()
         
