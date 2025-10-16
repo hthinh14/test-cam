@@ -32,9 +32,6 @@ def softmax_predict(X, W, b):
     b: Vector bias (shape: (1, n_classes))
     """
     logits = X @ W + b
-    # Tính toán softmax (không cần thiết vì chỉ cần argmax)
-    # exp_z = np.exp(logits - np.max(logits, axis=1, keepdims=True))
-    # y_pred = exp_z / np.sum(exp_z, axis=1, keepdims=True)
     
     # Lấy chỉ mục lớp có xác suất cao nhất
     return np.argmax(logits, axis=1)
@@ -76,8 +73,7 @@ def load_assets():
         st.stop()
 
 # Tải tài sản (Chạy một lần khi khởi động ứng dụng)
-# Đã đổi tên biến từ 'model'/'tree' thành W, b
-W, b, mean, std, id2label = load_assets() 
+W, b, mean, std, id2label = load_assets()
 classes = list(id2label.values())
 
 
@@ -139,7 +135,9 @@ class DrowsinessProcessor(VideoProcessorBase):
         self.mean = mean
         self.std = std
         self.id2label = id2label
-        self.face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True)
+        self.face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=False)
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5
         self.frame_queue = deque(maxlen=WINDOW_SIZE)
         self.pred_queue = deque(maxlen=SMOOTH_WINDOW)
         self.last_pred_label = "CHỜ DỮ LIỆU" 
@@ -185,7 +183,7 @@ class DrowsinessProcessor(VideoProcessorBase):
                 self.pred_queue.append(pred_label)
 
                 # Xóa 15 khung hình cũ (overlap)
-                for _ in range(7):
+                for _ in range(5):
                     if self.frame_queue:
                         self.frame_queue.popleft() 
         
@@ -195,7 +193,7 @@ class DrowsinessProcessor(VideoProcessorBase):
             self.last_pred_label = max(set(self.pred_queue), key=self.pred_queue.count)
 
         # --- 4. HIỂN THỊ KẾT QUẢ ---
-        cv2.putText(frame_array, f"Trang thai: {self.last_pred_label.upper()}", (10, 70), 
+        cv2.putText(frame_array, f"Trạng thái: {self.last_pred_label.upper()}", (10, 70), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 0), 3)
 
         return av.VideoFrame.from_ndarray(frame_array, format="bgr24")
