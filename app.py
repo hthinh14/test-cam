@@ -11,8 +11,8 @@ from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 # ==============================
 # CẤU HÌNH CƠ BẢN
 # ==============================
-MODEL_PATH = "decision_tree_model.pkl"
-SCALER_PATH = "scaler.pkl"
+MODEL_PATH = "softmax_model_best.pkl"
+SCALER_PATH = "scale.pkl"
 LABEL_MAP_PATH = "label_map.json"
 
 SMOOTH_WINDOW = 8
