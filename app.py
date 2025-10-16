@@ -19,7 +19,7 @@ LABEL_MAP_PATH = "label_map.json"
 
 SMOOTH_WINDOW = 8
 EPS = 1e-8 # Dùng 1e-8 như trong code huấn luyện
-WINDOW_SIZE = 30 # Cửa sổ khung hình để tính đặc trưng thống kê
+WINDOW_SIZE = 15 # Cửa sổ khung hình để tính đặc trưng thống kê
 
 # ==============================
 # HÀM DỰ ĐOÁN SOFTMAX
@@ -185,7 +185,7 @@ class DrowsinessProcessor(VideoProcessorBase):
                 self.pred_queue.append(pred_label)
 
                 # Xóa 15 khung hình cũ (overlap)
-                for _ in range(15): 
+                for _ in range(7):
                     if self.frame_queue:
                         self.frame_queue.popleft() 
         
@@ -204,7 +204,7 @@ class DrowsinessProcessor(VideoProcessorBase):
 ## GIAO DIỆN STREAMLIT CHÍNH
 # ----------------------------------------------------------------------
 st.set_page_config(page_title="Demo Softmax", layout="wide")
-st.title("🧠 Nhận diện trạng thái mất tập trung bằng mô hình Softmax.")
+st.title("🧠 Nhận diện trạng thái mất tập trung bằng mô hình học máy.")
 st.success(f"Mô hình sẵn sàng! Các nhãn: {classes}")
 st.warning("Vui lòng chấp nhận yêu cầu truy cập camera từ trình duyệt của bạn.")
 st.markdown("---")
