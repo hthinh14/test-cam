@@ -30,16 +30,31 @@ def predict(X, model):
 def load_assets():
     """Tải model, scaler và label map"""
     try:
+        # Load model (giữ nguyên)
         with open(MODEL_PATH, "rb") as f:
-            model = joblib.load(f) 
+            model = joblib.load(f) # Hoặc pickle.load(f)
+            
+        # Load scaler 
         with open(SCALER_PATH, "rb") as f:
-            scaler_data = joblib.load(f)
+            scaler_object = joblib.load(f) # Tải đối tượng StandardScaler
+        
+        # CỐ GẮNG TRUY CẬP THUỘC TÍNH TIÊU CHUẨN CỦA SKLEARN
+        mean_data = scaler_object.mean_
+        std_data = scaler_object.scale_
+            
         with open(LABEL_MAP_PATH, "r") as f:
             label_map = json.load(f)
         id2label = {v: k for k, v in label_map.items()}
         
-        # Trả về các thành phần đã tải
-        return model, scaler_data["mean"], scaler_data["std"], id2label
+        return model, mean_data, std_data, id2label # Trả về mean và std trực tiếp
+    except AttributeError:
+        # Nếu không có thuộc tính mean_ (tức là nó là dictionary nhưng key sai)
+        st.error("Lỗi: File scaler không phải Sklearn StandardScaler. Vui lòng kiểm tra lại cấu trúc file scale.pkl.")
+        st.stop()
+    except KeyError:
+        # Nếu nó là dictionary nhưng bạn truy cập sai key (dòng code cũ của bạn)
+        st.error("Lỗi: File scaler là dictionary nhưng key 'mean' hoặc 'std' không tồn tại.")
+        st.stop()
     except FileNotFoundError as e:
         st.error(f"Lỗi File: Không tìm thấy file tài nguyên. Vui lòng kiểm tra đường dẫn: {e.filename}")
         st.stop()
