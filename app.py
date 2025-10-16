@@ -146,12 +146,28 @@ class DrowsinessProcessor(VideoProcessorBase):
 
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
         frame_array = frame.to_ndarray(format="bgr24")
-        h, w = frame_array.shape[:2]
-        rgb = cv2.cvtColor(frame_array, cv2.COLOR_BGR2RGB)
+        
+        # ==========================================================
+        # 💡 BƯỚC THÊM VÀO: GIẢM KÍCH THƯỚC (RESIZE)
+        # ==========================================================
+        # Đặt kích thước mới (640x480 là mức cân bằng giữa tốc độ và chất lượng)
+        NEW_WIDTH, NEW_HEIGHT = 640, 480 
+        
+        # Giảm kích thước khung hình
+        frame_resized = cv2.resize(frame_array, (NEW_WIDTH, NEW_HEIGHT))
+        
+        # Cập nhật w và h thành kích thước mới để tính toán landmarks
+        h, w = frame_resized.shape[:2] 
+        
+        # Chuyển sang RGB (dùng khung hình đã resize)
+        rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+        
+        # Xử lý Face Mesh trên khung hình đã resize
         results = self.face_mesh.process(rgb)
         
         # --- 1. TRÍCH XUẤT ĐẶC TRƯNG ---
         if results.multi_face_landmarks:
+            # landmarks được nhân với w và h mới (640, 480)
             landmarks = np.array([[p.x * w, p.y * h, p.z * w] for p in results.multi_face_landmarks[0].landmark])
 
             # Tính 9 đặc trưng cơ bản
@@ -163,43 +179,41 @@ class DrowsinessProcessor(VideoProcessorBase):
                               angle_pitch_extra, forehead_y, cheek_dist], dtype=np.float32)
             self.frame_queue.append(feat) 
             
-            # --- 2. DỰ ĐOÁN KHI ĐỦ 30 KHUNG HÌNH ---
+            # --- 2. DỰ ĐOÁN KHI ĐỦ KHUNG HÌNH ---
             if len(self.frame_queue) == WINDOW_SIZE:
                 window = np.array(self.frame_queue)
                 
-                # Tính 24 đặc trưng (giữ nguyên logic của bạn)
+                # Tính 24 đặc trưng (giữ nguyên)
                 mean_feats = window.mean(axis=0); std_feats = window.std(axis=0)
                 yaw_diff = np.mean(np.abs(np.diff(window[:, 3]))); pitch_diff = np.mean(np.abs(np.diff(window[:, 4]))); roll_diff = np.mean(np.abs(np.diff(window[:, 5])))
                 mar_mean = np.mean(window[:, 2]); ear_mean = np.mean((window[:, 0] + window[:, 1]) / 2.0)
                 mar_ear_ratio = mar_mean / (ear_mean + EPS); yaw_pitch_ratio = np.mean(np.abs(window[:, 3])) / (np.mean(np.abs(window[:, 4])) + EPS)
                 feats_24 = np.concatenate([mean_feats, std_feats, [yaw_diff, pitch_diff, roll_diff, np.max(window[:, 2]), mar_ear_ratio, yaw_pitch_ratio]])
 
-                # Chuẩn hóa
+                # Chuẩn hóa, Dự đoán
                 feats_scaled = (feats_24 - self.mean) / self.std
-                
-                # SỬ DỤNG HÀM DỰ ĐOÁN SOFTMAX TỰ XÂY DỰNG
-                # (Đảm bảo input có shape (1, 24) cho hàm predict)
                 pred_idx = softmax_predict(np.expand_dims(feats_scaled, axis=0), self.W, self.b)[0] 
                 
                 pred_label = self.id2label.get(pred_idx, f"Class {pred_idx}")
                 self.pred_queue.append(pred_label)
 
-                # Xóa 15 khung hình cũ (overlap)
-                for _ in range(5):
+                # Xóa khung hình cũ (overlap)
+                FRAMES_TO_DELETE = 5
+                for _ in range(FRAMES_TO_DELETE):
                     if self.frame_queue:
                         self.frame_queue.popleft()
         
         # --- 3. SMOOTHING ---
         if len(self.pred_queue) > 0:
-            # Lấy nhãn xuất hiện nhiều nhất trong cửa sổ làm mịn
             self.last_pred_label = max(set(self.pred_queue), key=self.pred_queue.count)
 
         # --- 4. HIỂN THỊ KẾT QUẢ ---
-        cv2.putText(frame_array, f"Trang thai: {self.last_pred_label.upper()}", (10, 70), 
+        # Chèn văn bản vào khung hình đã resize
+        cv2.putText(frame_resized, f"Trang thai: {self.last_pred_label.upper()}", (10, 70), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 0), 3)
 
-        return av.VideoFrame.from_ndarray(frame_array, format="bgr24")
-
+        # 💡 TRẢ VỀ KHUNG HÌNH ĐÃ RESIZE (frame_resized)
+        return av.VideoFrame.from_ndarray(frame_resized, format="bgr24")
 # ----------------------------------------------------------------------
 ## GIAO DIỆN STREAMLIT CHÍNH
 # ----------------------------------------------------------------------
