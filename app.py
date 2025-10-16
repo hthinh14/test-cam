@@ -140,7 +140,7 @@ class DrowsinessProcessor(VideoProcessorBase):
         min_tracking_confidence=0.5
         self.frame_queue = deque(maxlen=WINDOW_SIZE)
         self.pred_queue = deque(maxlen=SMOOTH_WINDOW)
-        self.last_pred_label = "CHỜ DỮ LIỆU" 
+        self.last_pred_label = "CHO DU LIEU VAO" 
 
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
         frame_array = frame.to_ndarray(format="bgr24")
@@ -183,9 +183,9 @@ class DrowsinessProcessor(VideoProcessorBase):
                 self.pred_queue.append(pred_label)
 
                 # Xóa 15 khung hình cũ (overlap)
-                for _ in range(5):
+                for _ in range(2):
                     if self.frame_queue:
-                        self.frame_queue.popleft() 
+                        self.frame_queue.popleft()
         
         # --- 3. SMOOTHING ---
         if len(self.pred_queue) > 0:
@@ -193,7 +193,7 @@ class DrowsinessProcessor(VideoProcessorBase):
             self.last_pred_label = max(set(self.pred_queue), key=self.pred_queue.count)
 
         # --- 4. HIỂN THỊ KẾT QUẢ ---
-        cv2.putText(frame_array, f"Trạng thái: {self.last_pred_label.upper()}", (10, 70), 
+        cv2.putText(frame_array, f"Trang thai: {self.last_pred_label.upper()}", (10, 70), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 0), 3)
 
         return av.VideoFrame.from_ndarray(frame_array, format="bgr24")
