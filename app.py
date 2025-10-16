@@ -32,36 +32,42 @@ def load_assets():
     try:
         # Load model (giữ nguyên)
         with open(MODEL_PATH, "rb") as f:
-            model = joblib.load(f) # Hoặc pickle.load(f)
+            model = joblib.load(f)
             
         # Load scaler 
         with open(SCALER_PATH, "rb") as f:
-            scaler_object = joblib.load(f) # Tải đối tượng StandardScaler
-        
-        # CỐ GẮNG TRUY CẬP THUỘC TÍNH TIÊU CHUẨN CỦA SKLEARN
-        mean_data = scaler_object.mean_
-        std_data = scaler_object.scale_
+            scaler_data = joblib.load(f) # Tải đối tượng
+
+        # --- PHẦN KHẮC PHỤC LỖI SCALER KEY ---
+        if isinstance(scaler_data, dict):
+            # Kiểm tra các key phổ biến nếu key 'mean' và 'std' không tồn tại
+            if 'mean' in scaler_data and 'std' in scaler_data:
+                 mean_data = scaler_data['mean']
+                 std_data = scaler_data['std']
+            elif 'avg' in scaler_data and 'stdev' in scaler_data:
+                 # Thử key thay thế
+                 mean_data = scaler_data['avg']
+                 std_data = scaler_data['stdev']
+            else:
+                 raise ValueError("File scaler là dictionary nhưng thiếu key 'mean'/'std' hoặc 'avg'/'stdev'.")
+        else:
+             # Nếu không phải dict, không phải Sklearn object, lỗi là không thể load
+             raise TypeError("File scaler không phải là dictionary chứa mean/std.")
             
+        # ... (Tải label map và trả về)
         with open(LABEL_MAP_PATH, "r") as f:
             label_map = json.load(f)
         id2label = {v: k for k, v in label_map.items()}
         
-        return model, mean_data, std_data, id2label # Trả về mean và std trực tiếp
-    except AttributeError:
-        # Nếu không có thuộc tính mean_ (tức là nó là dictionary nhưng key sai)
-        st.error("Lỗi: File scaler không phải Sklearn StandardScaler. Vui lòng kiểm tra lại cấu trúc file scale.pkl.")
-        st.stop()
-    except KeyError:
-        # Nếu nó là dictionary nhưng bạn truy cập sai key (dòng code cũ của bạn)
-        st.error("Lỗi: File scaler là dictionary nhưng key 'mean' hoặc 'std' không tồn tại.")
-        st.stop()
-    except FileNotFoundError as e:
-        st.error(f"Lỗi File: Không tìm thấy file tài nguyên. Vui lòng kiểm tra đường dẫn: {e.filename}")
+        return model, mean_data, std_data, id2label # Trả về mean và std đã trích xuất
+
+    # ... (Xử lý các ngoại lệ FileNotFoundError, v.v.)
+    except (ValueError, TypeError) as e:
+        st.error(f"Lỗi: Kiểm tra cấu trúc file scale.pkl. {e}")
         st.stop()
     except Exception as e:
-        st.error(f"Lỗi Load: Kiểm tra cấu trúc file .pkl/.json: {e}")
+        st.error(f"Lỗi Load: {e}")
         st.stop()
-
 # Tải tài sản
 model, mean, std, id2label = load_assets() # Đã đổi tên biến từ tree thành model
 classes = list(id2label.values())
